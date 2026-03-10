@@ -216,17 +216,60 @@ async function searchZLib(query) {
     const results = [];
     try {
         // We use libgen.li as a proxy/alternative for Z-Library content
+        // Updated URL to focus on a broader search in libgen.li
         const searchUrl = `https://libgen.li/index.php?req=${encodeURIComponent(query)}&columns%5B%5D=t&columns%5B%5D=a&columns%5B%5D=s&columns%5B%5D=y&columns%5B%5D=p&columns%5B%5D=i&objects%5B%5D=f&objects%5B%5D=e&objects%5B%5D=s&objects%5B%5D=a&objects%5B%5D=p&objects%5B%5D=w&topics%5B%5D=l&topics%5B%5D=c&topics%5B%5D=f&topics%5B%5D=a&topics%5B%5D=m&topics%5B%5D=r&topics%5B%5D=s`;
         const response = await fetch(searchUrl, {
-            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }
+            headers: { 
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5'
+            }
         });
 
-        if (!response.ok) return results;
+        if (!response.ok) {
+            console.warn(`Libgen.li returned status ${response.status}`);
+            return results;
+        }
+
         const html = await response.text();
         const $ = cheerio.load(html);
 
-        const rows = $('#tablelibgen tbody tr');
+        // Libgen.li uses a table with id "tablelibgen"
+        const rows = $('table#tablelibgen tbody tr, table.table-striped tbody tr');
         
+        if (rows.length === 0) {
+            // Try a more generic selector if the id is missing
+            const genericRows = $('table tr').slice(1); // skip header
+            genericRows.each((i, el) => {
+                const cols = $(el).find('td');
+                if (cols.length >= 9) {
+                    const title = $(cols[0]).find('a').first().text().trim();
+                    const author = $(cols[1]).text().trim();
+                    const year = $(cols[3]).text().trim();
+                    const language = $(cols[4]).text().trim();
+                    const format = $(cols[8]).text().trim();
+                    const size = $(cols[9]).text().trim();
+                    const directLink = $(cols[10]).find('a').attr('href');
+
+                    if (title && directLink) {
+                        const fullTitle = author ? `${title} - ${author}` : title;
+                        results.push({
+                            id: `zlib-gen-${i}-${title.substring(0, 10)}`.replace(/\s+/g, '-'),
+                            title: `${fullTitle} (${year})`,
+                            size,
+                            language,
+                            format,
+                            date: year,
+                            source: 'Z-Library (Libgen)',
+                            directUrl: directLink.startsWith('http') ? directLink : `https://libgen.li/${directLink}`,
+                            isBook: true
+                        });
+                    }
+                }
+            });
+            if (results.length > 0) return results;
+        }
+
         rows.each((i, el) => {
             const title = $(el).find('td:nth-child(1) a').first().text().trim();
             const author = $(el).find('td:nth-child(2)').text().trim();
@@ -235,19 +278,18 @@ async function searchZLib(query) {
             const format = $(el).find('td:nth-child(9)').text().trim();
             const size = $(el).find('td:nth-child(10)').text().trim();
             
-            // Mirror links are usually in columns 11+
             const directLink = $(el).find('td:nth-child(11) a').attr('href');
             
             if (title && directLink) {
                 const fullTitle = author ? `${title} - ${author}` : title;
                 results.push({
-                    id: `zlib-${i}-${title}`.replace(/\s+/g, '-'),
+                    id: `zlib-${i}-${title.substring(0, 10)}`.replace(/\s+/g, '-'),
                     title: `${fullTitle} (${year})`,
                     size,
                     language,
                     format,
                     date: year,
-                    source: 'Z-Library (via Libgen)',
+                    source: 'Z-Library (Libgen)',
                     directUrl: directLink.startsWith('http') ? directLink : `https://libgen.li/${directLink}`,
                     isBook: true
                 });
