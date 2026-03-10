@@ -323,6 +323,10 @@ async function searchLibGen(query) {
                         isBook: true
                     });
                 }
+
+            }
+        });
+
     } catch (err) {
                 console.warn('LibGen search error:', err);
     }
