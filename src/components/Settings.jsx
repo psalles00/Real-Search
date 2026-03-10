@@ -2,13 +2,29 @@ import { useState, useEffect } from 'react';
 import { getUser } from '../services/realDebrid';
 import './Settings.css';
 
-export default function Settings({ isOpen, onClose, apiKey, onSaveApiKey, jsonUrls, onSaveJsonUrls, isSignedIn }) {
+export default function Settings({ 
+    isOpen, 
+    onClose, 
+    apiKey, 
+    onSaveApiKey, 
+    jsonUrls, 
+    onSaveJsonUrls, 
+    providers,
+    onSaveProviders,
+    isSignedIn 
+}) {
     const [inputKey, setInputKey] = useState(apiKey || '');
     const [jsonInput, setJsonInput] = useState('');
     const [testing, setTesting] = useState(false);
     const [testResult, setTestResult] = useState(null);
 
-    // Update input field when apiKey changes (sync with Clerk)
+    const toggleProvider = (providerId) => {
+        const newProviders = {
+            ...providers,
+            [providerId]: !providers[providerId]
+        };
+        onSaveProviders(newProviders);
+    };
     useEffect(() => {
         setInputKey(apiKey || '');
     }, [apiKey]);
@@ -147,20 +163,32 @@ export default function Settings({ isOpen, onClose, apiKey, onSaveApiKey, jsonUr
                                 <span className="provider-dot active"></span>
                                 Real-Debrid (API)
                             </li>
-                            <li>
-                                <span className="provider-dot active"></span>
+                            <li 
+                                className={`provider-item ${providers?.apibay ? 'active' : 'inactive'}`}
+                                onClick={() => toggleProvider('apibay')}
+                            >
+                                <span className={`provider-dot ${providers?.apibay ? 'active' : ''}`}></span>
                                 The Pirate Bay (via APIBay)
                             </li>
-                            <li>
-                                <span className="provider-dot active"></span>
+                            <li 
+                                className={`provider-item ${providers?.yts ? 'active' : 'inactive'}`}
+                                onClick={() => toggleProvider('yts')}
+                            >
+                                <span className={`provider-dot ${providers?.yts ? 'active' : ''}`}></span>
                                 YTS (via API)
                             </li>
-                            <li>
-                                <span className="provider-dot active"></span>
-                                SolidTorrents (via API)
+                            <li 
+                                className={`provider-item ${providers?.tcsv ? 'active' : 'inactive'}`}
+                                onClick={() => toggleProvider('tcsv')}
+                            >
+                                <span className={`provider-dot ${providers?.tcsv ? 'active' : ''}`}></span>
+                                Torrents-CSV (via API)
                             </li>
-                            <li>
-                                <span className="provider-dot active"></span>
+                            <li 
+                                className={`provider-item ${providers?.x1337 ? 'active' : 'inactive'}`}
+                                onClick={() => toggleProvider('x1337')}
+                            >
+                                <span className={`provider-dot ${providers?.x1337 ? 'active' : ''}`}></span>
                                 1337x.to (Scraper)
                             </li>
                         </ul>

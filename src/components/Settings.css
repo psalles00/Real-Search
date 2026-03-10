@@ -258,13 +258,29 @@
     gap: var(--space-2);
     font-size: var(--font-xs);
     color: var(--text-secondary);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    transition: background var(--transition-fast);
+}
+
+.provider-item {
+    cursor: pointer;
+}
+
+.provider-item:hover {
+    background: var(--bg-elevated);
+}
+
+.provider-item.inactive {
+    opacity: 0.6;
 }
 
 .provider-dot {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
-    background: var(--text-tertiary);
+    background: #444;
+    transition: all var(--transition-fast);
 }
 
 .provider-dot.active {

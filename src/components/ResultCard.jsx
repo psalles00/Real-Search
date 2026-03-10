@@ -11,6 +11,7 @@ export default function ResultCard({ result, type, apiKey, onSmartRD, onManualCh
     const [checking, setChecking] = useState(false);
     const [checkedNoCache, setCheckedNoCache] = useState(false);
     const [expandedFiles, setExpandedFiles] = useState(null);
+    const [directDownloadUrl, setDirectDownloadUrl] = useState(null);
 
     const handleCopyMagnet = () => {
         if (result.magnet) {
@@ -37,6 +38,7 @@ export default function ResultCard({ result, type, apiKey, onSmartRD, onManualCh
 
             const rdResult = await onSmartRD(result.magnet);
             if (rdResult.type === 'downloaded') {
+                setDirectDownloadUrl(rdResult.directLink);
                 onToast?.(rdResult.message, 'success');
             } else if (rdResult.type === 'multi') {
                 setExpandedFiles(rdResult.links);
@@ -173,21 +175,43 @@ export default function ResultCard({ result, type, apiKey, onSmartRD, onManualCh
                                 </button>
                                 <button
                                     className={`result-card__action-btn result-card__action-btn--rd`}
-                                    onClick={handleSmartClick}
+                                    onClick={rdResult?.directLink || directDownloadUrl ? () => window.open(rdResult?.directLink || directDownloadUrl, '_blank') : handleSmartClick}
                                     disabled={adding}
-                                    title="Adicionar / Baixar no Real-Debrid"
+                                    title={rdResult?.directLink || directDownloadUrl ? "Baixar Direto" : "Adicionar / Baixar no Real-Debrid"}
                                 >
                                     {adding ? (
                                         <span className="result-card__spinner" />
                                     ) : (
                                         <>
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                <line x1="12" y1="5" x2="12" y2="19" />
-                                                <line x1="5" y1="12" x2="19" y2="12" />
+                                                {rdResult?.directLink || directDownloadUrl ? (
+                                                    <>
+                                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                                        <polyline points="7 10 12 15 17 10" />
+                                                        <line x1="12" y1="15" x2="12" y2="3" />
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <line x1="12" y1="5" x2="12" y2="19" />
+                                                        <line x1="5" y1="12" x2="19" y2="12" />
+                                                    </>
+                                                )}
                                             </svg>
-                                            <span>Real-Debrid</span>
+                                            <span>{rdResult?.directLink || directDownloadUrl ? 'Download Direto' : 'Real-Debrid'}</span>
                                         </>
                                     )}
+                                </button>
+                                <button
+                                    className="result-card__action-btn result-card__action-btn--platform"
+                                    onClick={() => window.open('https://real-debrid.com/torrents', '_blank')}
+                                    title="Ir para o Real-Debrid"
+                                >
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                                        <polyline points="15 3 21 3 21 9" />
+                                        <line x1="10" y1="14" x2="21" y2="3" />
+                                    </svg>
+                                    <span>Ver no RD</span>
                                 </button>
                             </>
                         )}
@@ -195,25 +219,42 @@ export default function ResultCard({ result, type, apiKey, onSmartRD, onManualCh
                 )}
 
                 {type === 'cached' && apiKey && (
-                    <button
-                        className="result-card__action-btn result-card__action-btn--download"
-                        onClick={handleSmartClick}
-                        disabled={adding}
-                        title="Baixar novamente via Real-Debrid"
-                    >
-                        {adding ? (
-                            <span className="result-card__spinner" />
-                        ) : (
-                            <>
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                    <polyline points="7 10 12 15 17 10" />
-                                    <line x1="12" y1="15" x2="12" y2="3" />
-                                </svg>
-                                <span>Download</span>
-                            </>
-                        )}
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                            className="result-card__action-btn result-card__action-btn--download-direct"
+                            onClick={() => {
+                                setAdding(true);
+                                handleSmartClick().finally(() => setAdding(false));
+                            }}
+                            disabled={adding}
+                            title="Baixar de forma direta via Real-Debrid"
+                        >
+                            {adding ? (
+                                <span className="result-card__spinner" />
+                            ) : (
+                                <>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                        <polyline points="7 10 12 15 17 10" />
+                                        <line x1="12" y1="15" x2="12" y2="3" />
+                                    </svg>
+                                    <span>Download Direto</span>
+                                </>
+                            )}
+                        </button>
+                        <button
+                            className="result-card__action-btn result-card__action-btn--external"
+                            onClick={() => window.open('https://real-debrid.com/torrents', '_blank')}
+                            title="Abrir página de torrents do Real-Debrid"
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                                <polyline points="15 3 21 3 21 9" />
+                                <line x1="10" y1="14" x2="21" y2="3" />
+                            </svg>
+                            <span>Ver no RD</span>
+                        </button>
+                    </div>
                 )}
             </div>
 

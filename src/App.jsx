@@ -17,6 +17,13 @@ export default function App() {
   const [apiKey, setApiKey] = useState(localApiKey);
   const [localJsonUrls, setLocalJsonUrls] = useLocalStorage('json_urls', []);
   const [jsonUrls, setJsonUrls] = useState(localJsonUrls);
+  const [localProviders, setLocalProviders] = useLocalStorage('torrent_providers', {
+    apibay: true,
+    yts: true,
+    tcsv: true,
+    x1337: true
+  });
+  const [providers, setProviders] = useState(localProviders);
 
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -33,6 +40,7 @@ export default function App() {
       if (isSignedIn && user) {
         const cloudApiKey = user.unsafeMetadata?.rd_api_token;
         const cloudJsonUrls = user.unsafeMetadata?.json_urls;
+        const cloudProviders = user.unsafeMetadata?.torrent_providers;
 
         // 1. Sincronizar API Key
         if (cloudApiKey) {
@@ -57,13 +65,25 @@ export default function App() {
             unsafeMetadata: { ...user.unsafeMetadata, json_urls: localJsonUrls }
           }).catch(err => console.error('Erro ao subir jsonUrls para o Clerk:', err));
         }
+
+        // 3. Sincronizar Provedores
+        if (cloudProviders && typeof cloudProviders === 'object') {
+          setProviders(cloudProviders);
+          setLocalProviders(cloudProviders);
+        } else if (localProviders) {
+          setProviders(localProviders);
+          user.update({
+            unsafeMetadata: { ...user.unsafeMetadata, torrent_providers: localProviders }
+          }).catch(err => console.error('Erro ao subir providers para o Clerk:', err));
+        }
       } else if (!isSignedIn) {
         // Usuário deslogado: mantém o que está no localStorage
         setApiKey(localApiKey);
         setJsonUrls(localJsonUrls);
+        setProviders(localProviders);
       }
     }
-  }, [isLoaded, isSignedIn, user, localApiKey, localJsonUrls, setLocalApiKey, setLocalJsonUrls]);
+  }, [isLoaded, isSignedIn, user, localApiKey, localJsonUrls, localProviders, setLocalApiKey, setLocalJsonUrls, setLocalProviders]);
 
   const handleSaveApiKey = async (newKey) => {
     setApiKey(newKey);
@@ -101,6 +121,25 @@ export default function App() {
     }
   };
 
+  const handleSaveProviders = async (newProviders) => {
+    setProviders(newProviders);
+    setLocalProviders(newProviders);
+
+    if (isSignedIn && user) {
+      try {
+        await user.update({
+          unsafeMetadata: {
+            ...user.unsafeMetadata,
+            torrent_providers: newProviders
+          }
+        });
+      } catch (err) {
+        console.error('Erro ao salvar no Clerk:', err);
+      }
+    }
+  };
+ 
+
   const showToast = useCallback((message, type = 'success') => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
@@ -116,7 +155,7 @@ export default function App() {
     try {
       // Step 1: Search torrents from API and JSON sources
       const [rawApiResults, jsonResults] = await Promise.all([
-        searchTorrents(query),
+        searchTorrents(query, providers),
         searchJsonSources(query, jsonUrls)
       ]);
 
@@ -237,10 +276,10 @@ export default function App() {
       if (parsedLinks.length === 1) {
         // Arquivo unico (um filme padrão), mantem o auto-download pra ser luxuoso
         window.open(parsedLinks[0].downloadUrl, '_blank');
-        return { type: 'downloaded', message: 'Torrent 100% cacheado! Download iniciado.' };
+        return { type: 'downloaded', message: 'Torrent 100% cacheado! Download iniciado.', directLink: parsedLinks[0].downloadUrl };
       } else if (parsedLinks.length > 1) {
         // Pack de Temporada ou Multiplos Arquivos
-        return { type: 'multi', message: 'Múltiplos arquivos disponíveis', links: parsedLinks };
+        return { type: 'multi', message: 'Múltiplos arquivos disponíveis na conta.', links: parsedLinks };
       }
     }
 
@@ -348,6 +387,8 @@ export default function App() {
         onSaveApiKey={handleSaveApiKey}
         jsonUrls={jsonUrls}
         onSaveJsonUrls={handleSaveJsonUrls}
+        providers={providers}
+        onSaveProviders={handleSaveProviders}
         isSignedIn={isSignedIn}
       />
 

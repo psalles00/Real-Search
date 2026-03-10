@@ -136,7 +136,7 @@ async function search1337x(query) {
     try {
         const searchUrl = `https://www.1377x.to/search/${encodeURIComponent(query)}/1/`;
         const response = await fetch(searchUrl, {
-            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
+            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }
         });
 
         if (!response.ok) return results;
@@ -146,9 +146,22 @@ async function search1337x(query) {
         const rows = $('table.table-list tbody tr');
         const detailPromises = [];
 
-        rows.slice(0, 15).each((i, el) => {
+        // Escape query for better regex match
+        const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const queryWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 1);
+
+        rows.each((i, el) => {
+            if (detailPromises.length >= 15) return;
+
             const title = $(el).find('td.coll-1.name a').last().text();
             const detailPath = $(el).find('td.coll-1.name a').last().attr('href');
+            
+            // Relevance check: title must contain all words from the query
+            const titleLower = title.toLowerCase();
+            const isRelevant = queryWords.every(word => titleLower.includes(word));
+            
+            if (!isRelevant) return;
+
             const seeds = parseInt($(el).find('td.coll-2.seeds').text(), 10) || 0;
             const leeches = parseInt($(el).find('td.coll-3.leeches').text(), 10) || 0;
             
@@ -198,7 +211,7 @@ async function search1337x(query) {
     return results;
 }
 
-async function smartSearch(query) {
+async function smartSearch(query, providers = []) {
     const seasonMatch = query.match(/(.+?)\s+(s(\d+)|season\s+(\d+)|temporada\s+(\d+))/i);
     let queries = [query];
     let filterPattern = null;
@@ -212,13 +225,24 @@ async function smartSearch(query) {
         filterPattern = new RegExp(`${sXX}|Season\\s*0?${seasonNum}|Temporada\\s*0?${seasonNum}`, 'i');
     }
 
+    const hasProvidersFilter = Array.isArray(providers) && providers.length > 0;
+
     const allResultsRaw = await Promise.all(queries.map(async (q) => {
-        const [apibay, yts, tcsv, x1337] = await Promise.all([
-            searchAPIBay(q),
-            searchYTS(q),
-            searchTorrentsCSV(q),
-            search1337x(q)
-        ]);
+        const searchPromises = [];
+        
+        if (!hasProvidersFilter || providers.includes('apibay')) searchPromises.push(searchAPIBay(q));
+        else searchPromises.push(Promise.resolve([]));
+
+        if (!hasProvidersFilter || providers.includes('yts')) searchPromises.push(searchYTS(q));
+        else searchPromises.push(Promise.resolve([]));
+
+        if (!hasProvidersFilter || providers.includes('tcsv')) searchPromises.push(searchTorrentsCSV(q));
+        else searchPromises.push(Promise.resolve([]));
+
+        if (!hasProvidersFilter || providers.includes('x1337')) searchPromises.push(search1337x(q));
+        else searchPromises.push(Promise.resolve([]));
+
+        const [apibay, yts, tcsv, x1337] = await Promise.all(searchPromises);
         return [...apibay, ...yts, ...tcsv, ...x1337];
     }));
 
@@ -244,6 +268,8 @@ async function smartSearch(query) {
 export default async (request) => {
     const url = new URL(request.url);
     const q = url.searchParams.get('q');
+    const providersParam = url.searchParams.get('providers');
+    const providers = providersParam ? providersParam.split(',') : [];
 
     if (!q) {
         return new Response(JSON.stringify({ error: 'Termo de busca vazio' }), {
@@ -253,7 +279,7 @@ export default async (request) => {
     }
 
     try {
-        const results = await smartSearch(q);
+        const results = await smartSearch(q, providers);
 
         // Sort by seeders descending
         results.sort((a, b) => b.seeds - a.seeds);
