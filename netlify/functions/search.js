@@ -235,64 +235,33 @@ async function searchZLib(query) {
         const $ = cheerio.load(html);
 
         // Libgen.li uses a table with id "tablelibgen"
-        const rows = $('table#tablelibgen tbody tr, table.table-striped tbody tr');
+        const rows = $('table#tablelibgen tbody tr');
         
-        if (rows.length === 0) {
-            // Try a more generic selector if the id is missing
-            const genericRows = $('table tr').slice(1); // skip header
-            genericRows.each((i, el) => {
-                const cols = $(el).find('td');
-                if (cols.length >= 9) {
-                    const title = $(cols[0]).find('a').first().text().trim();
-                    const author = $(cols[1]).text().trim();
-                    const year = $(cols[3]).text().trim();
-                    const language = $(cols[4]).text().trim();
-                    const format = $(cols[8]).text().trim();
-                    const size = $(cols[9]).text().trim();
-                    const directLink = $(cols[10]).find('a').attr('href');
-
-                    if (title && directLink) {
-                        const fullTitle = author ? `${title} - ${author}` : title;
-                        results.push({
-                            id: `zlib-gen-${i}-${title.substring(0, 10)}`.replace(/\s+/g, '-'),
-                            title: `${fullTitle} (${year})`,
-                            size,
-                            language,
-                            format,
-                            date: year,
-                            source: 'Z-Library (Libgen)',
-                            directUrl: directLink.startsWith('http') ? directLink : `https://libgen.li/${directLink}`,
-                            isBook: true
-                        });
-                    }
-                }
-            });
-            if (results.length > 0) return results;
-        }
-
         rows.each((i, el) => {
-            const title = $(el).find('td:nth-child(1) a').first().text().trim();
-            const author = $(el).find('td:nth-child(2)').text().trim();
-            const year = $(el).find('td:nth-child(4)').text().trim();
-            const language = $(el).find('td:nth-child(5)').text().trim();
-            const format = $(el).find('td:nth-child(9)').text().trim();
-            const size = $(el).find('td:nth-child(10)').text().trim();
-            
-            const directLink = $(el).find('td:nth-child(11) a').attr('href');
-            
-            if (title && directLink) {
-                const fullTitle = author ? `${title} - ${author}` : title;
-                results.push({
-                    id: `zlib-${i}-${title.substring(0, 10)}`.replace(/\s+/g, '-'),
-                    title: `${fullTitle} (${year})`,
-                    size,
-                    language,
-                    format,
-                    date: year,
-                    source: 'Z-Library (Libgen)',
-                    directUrl: directLink.startsWith('http') ? directLink : `https://libgen.li/${directLink}`,
-                    isBook: true
-                });
+            const cols = $(el).find('td');
+            if (cols.length >= 9) {
+                const title = $(cols[0]).find('a').first().text().trim();
+                const author = $(cols[1]).text().trim();
+                const year = $(cols[3]).text().trim();
+                const language = $(cols[4]).text().trim();
+                const size = $(cols[6]).text().trim();
+                const format = $(cols[7]).text().trim();
+                const directLink = $(cols[8]).find('a').attr('href');
+                
+                if (title && directLink) {
+                    const fullTitle = author ? `${title} - ${author}` : title;
+                    results.push({
+                        id: `zlib-${i}-${title.substring(0, 10)}`.replace(/\s+/g, '-'),
+                        title: `${fullTitle} (${year})`,
+                        size,
+                        language,
+                        format,
+                        date: year,
+                        source: 'Z-Library (Libgen)',
+                        directUrl: directLink.startsWith('http') ? directLink : `https://libgen.li${directLink.startsWith('/') ? '' : '/'}${directLink}`,
+                        isBook: true
+                    });
+                }
             }
         });
     } catch (err) {
