@@ -156,10 +156,10 @@ export default function Settings({
                             <label className="settings-provider-toggle">
                                 <input
                                     type="checkbox"
-                                    checked={providers.zlib}
-                                    onChange={() => toggleProvider('zlib')}
+                                    checked={providers.libgen}
+                                    onChange={() => toggleProvider('libgen')}
                                 />
-                                <span>Z-Library</span>
+                                <span>LibGen</span>
                             </label>
                         </div>
                     </div>

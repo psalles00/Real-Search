@@ -211,8 +211,8 @@ async function search1337x(query) {
     return results;
 }
 
-// Z-Library Search via Library Genesis (Libgen)
-async function searchZLib(query) {
+// LibGen Search via Library Genesis (Libgen)
+async function searchLibGen(query) {
     const results = [];
     try {
         // We use libgen.li as a proxy/alternative for Z-Library content
@@ -248,24 +248,24 @@ async function searchZLib(query) {
                 const format = $(cols[7]).text().trim();
                 const directLink = $(cols[8]).find('a').attr('href');
                 
-                if (title && directLink) {
-                    const fullTitle = author ? `${title} - ${author}` : title;
-                    results.push({
-                        id: `zlib-${i}-${title.substring(0, 10)}`.replace(/\s+/g, '-'),
-                        title: `${fullTitle} (${year})`,
-                        size,
-                        language,
-                        format,
-                        date: year,
-                        source: 'Z-Library (Libgen)',
-                        directUrl: directLink.startsWith('http') ? directLink : `https://libgen.li${directLink.startsWith('/') ? '' : '/'}${directLink}`,
-                        isBook: true
-                    });
-                }
+                        if (title && directLink) {
+                            const fullTitle = author ? `${title} - ${author}` : title;
+                            results.push({
+                                id: `libgen-${i}-${title.substring(0, 10)}`.replace(/\s+/g, '-'),
+                                title: `${fullTitle} (${year})`,
+                                size,
+                                language,
+                                format,
+                                date: year,
+                                source: 'LibGen',
+                                directUrl: directLink.startsWith('http') ? directLink : `https://libgen.li${directLink.startsWith('/') ? '' : '/'}${directLink}`,
+                                isBook: true
+                            });
+                        }
             }
         });
     } catch (err) {
-        console.warn('Z-Library search error:', err);
+                console.warn('LibGen search error:', err);
     }
     return results;
 }
@@ -301,11 +301,11 @@ async function smartSearch(query, providers = []) {
         if (!hasProvidersFilter || providers.includes('x1337')) searchPromises.push(search1337x(q));
         else searchPromises.push(Promise.resolve([]));
 
-        if (!hasProvidersFilter || providers.includes('zlib')) searchPromises.push(searchZLib(q));
+        if (!hasProvidersFilter || providers.includes('libgen')) searchPromises.push(searchLibGen(q));
         else searchPromises.push(Promise.resolve([]));
 
-        const [apibay, yts, tcsv, x1337, zlib] = await Promise.all(searchPromises);
-        return [...apibay, ...yts, ...tcsv, ...x1337, ...zlib];
+        const [apibay, yts, tcsv, x1337, libgen] = await Promise.all(searchPromises);
+        return [...apibay, ...yts, ...tcsv, ...x1337, ...libgen];
     }));
 
     const seen = new Set();
