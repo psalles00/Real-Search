@@ -175,16 +175,16 @@ export default function ResultCard({ result, type, apiKey, onSmartRD, onManualCh
                                 </button>
                                 <button
                                     className={`result-card__action-btn result-card__action-btn--rd`}
-                                    onClick={rdResult?.directLink || directDownloadUrl ? () => window.open(rdResult?.directLink || directDownloadUrl, '_blank') : handleSmartClick}
+                                    onClick={directDownloadUrl ? () => window.open(directDownloadUrl, '_blank') : handleSmartClick}
                                     disabled={adding}
-                                    title={rdResult?.directLink || directDownloadUrl ? "Baixar Direto" : "Adicionar / Baixar no Real-Debrid"}
+                                    title={directDownloadUrl ? "Baixar Direto" : "Adicionar / Baixar no Real-Debrid"}
                                 >
                                     {adding ? (
                                         <span className="result-card__spinner" />
                                     ) : (
                                         <>
                                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                                {rdResult?.directLink || directDownloadUrl ? (
+                                                {directDownloadUrl ? (
                                                     <>
                                                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                                                         <polyline points="7 10 12 15 17 10" />
@@ -197,7 +197,7 @@ export default function ResultCard({ result, type, apiKey, onSmartRD, onManualCh
                                                     </>
                                                 )}
                                             </svg>
-                                            <span>{rdResult?.directLink || directDownloadUrl ? 'Download Direto' : 'Real-Debrid'}</span>
+                                            <span>{directDownloadUrl ? 'Download Direto' : 'Real-Debrid'}</span>
                                         </>
                                     )}
                                 </button>
