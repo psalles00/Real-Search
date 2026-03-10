@@ -291,6 +291,7 @@ async function searchLibGen(query) {
 
         // Libgen.li uses a table with id "tablelibgen"
         const rows = $('table#tablelibgen tbody tr');
+        const queryWords = query.toLowerCase().split(/\s+/).filter(w => w.length > 1);
         
         rows.each((i, el) => {
             const cols = $(el).find('td');
@@ -303,22 +304,25 @@ async function searchLibGen(query) {
                 const format = $(cols[7]).text().trim();
                 const directLink = $(cols[8]).find('a').attr('href');
                 
-                        if (title && directLink) {
-                            const fullTitle = author ? `${title} - ${author}` : title;
-                            results.push({
-                                id: `libgen-${i}-${title.substring(0, 10)}`.replace(/\s+/g, '-'),
-                                title: `${fullTitle} (${year})`,
-                                size,
-                                language,
-                                format,
-                                date: year,
-                                source: 'LibGen',
-                                directUrl: directLink.startsWith('http') ? directLink : `https://libgen.li${directLink.startsWith('/') ? '' : '/'}${directLink}`,
-                                isBook: true
-                            });
-                        }
-            }
-        });
+                // Relevance check: title should contain words from query
+                const titleLower = title.toLowerCase();
+                const authorLower = author.toLowerCase();
+                const isRelevant = queryWords.every(word => titleLower.includes(word) || authorLower.includes(word));
+                
+                if (title && directLink && isRelevant) {
+                    const fullTitle = author ? `${title} - ${author}` : title;
+                    results.push({
+                        id: `libgen-${i}-${title.substring(0, 10)}`.replace(/\s+/g, '-'),
+                        title: `${fullTitle} (${year})`,
+                        size,
+                        language,
+                        format,
+                        date: year,
+                        source: 'LibGen',
+                        directUrl: directLink.startsWith('http') ? directLink : `https://libgen.li${directLink.startsWith('/') ? '' : '/'}${directLink}`,
+                        isBook: true
+                    });
+                }
     } catch (err) {
                 console.warn('LibGen search error:', err);
     }

@@ -172,6 +172,50 @@ export default function Settings({
                         </div>
                     </div>
 
+                    <div className="settings-field">
+                        <label className="settings-field__label">Fontes JSON Externas</label>
+                        <p className="settings-field__help">
+                            Adicione URLs de arquivos JSON contendo links (ex: Jackett/Prowlarr export).
+                            Um por linha ou separados por vírgula.
+                        </p>
+                        <div className="settings-json-input">
+                            <textarea
+                                className="settings-field__input settings-field__textarea"
+                                placeholder="https://exemplo.com/links.json"
+                                value={jsonInput}
+                                onChange={(e) => setJsonInput(e.target.value)}
+                                rows="3"
+                            />
+                            <button 
+                                className="settings-json-add-btn"
+                                onClick={handleAddJson}
+                                disabled={!jsonInput.trim()}
+                            >
+                                Adicionar
+                            </button>
+                        </div>
+
+                        {jsonUrls.length > 0 && (
+                            <div className="settings-json-list">
+                                {jsonUrls.map((url, index) => (
+                                    <div key={index} className="settings-json-item">
+                                        <span className="settings-json-url" title={url}>{url}</span>
+                                        <button 
+                                            className="settings-json-remove" 
+                                            onClick={() => handleRemoveJson(url)}
+                                            title="Remover"
+                                        >
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <line x1="18" y1="6" x2="6" y2="18" />
+                                                <line x1="6" y1="6" x2="18" y2="18" />
+                                            </svg>
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
                     {testResult && (
                         <div
                             className={`settings-result ${testResult.success ? 'settings-result--success' : 'settings-result--error'}`}
