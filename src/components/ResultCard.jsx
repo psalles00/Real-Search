@@ -29,12 +29,14 @@ export default function ResultCard({ result, type, apiKey, onSmartRD, onManualCh
         }
     };
 
-    const handleSmartClick = async () => {
+    const handleSmartClick = async (openTab = true) => {
         if (!apiKey || !result.magnet) return;
         setAdding(true);
         try {
-            // Abrir o site do Real-Debrid em uma nova janela como solicitado
-            window.open('https://real-debrid.com/torrents', '_blank');
+            // Abrir o site do Real-Debrid em uma nova janela se solicitado
+            if (openTab) {
+                window.open('https://real-debrid.com/torrents', '_blank');
+            }
 
             const rdResult = await onSmartRD(result.magnet);
             if (rdResult.type === 'downloaded') {
@@ -174,8 +176,20 @@ export default function ResultCard({ result, type, apiKey, onSmartRD, onManualCh
                                     )}
                                 </button>
                                 <button
+                                    className="result-card__action-btn result-card__action-btn--platform"
+                                    onClick={() => window.open('https://real-debrid.com/torrents', '_blank')}
+                                    title="Ir para o Real-Debrid"
+                                >
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                                        <polyline points="15 3 21 3 21 9" />
+                                        <line x1="10" y1="14" x2="21" y2="3" />
+                                    </svg>
+                                    <span>Ver no RD</span>
+                                </button>
+                                <button
                                     className={`result-card__action-btn result-card__action-btn--rd`}
-                                    onClick={directDownloadUrl ? () => window.open(directDownloadUrl, '_blank') : handleSmartClick}
+                                    onClick={directDownloadUrl ? () => window.open(directDownloadUrl, '_blank') : () => handleSmartClick(true)}
                                     disabled={adding}
                                     title={directDownloadUrl ? "Baixar Direto" : "Adicionar / Baixar no Real-Debrid"}
                                 >
@@ -201,31 +215,28 @@ export default function ResultCard({ result, type, apiKey, onSmartRD, onManualCh
                                         </>
                                     )}
                                 </button>
-                                <button
-                                    className="result-card__action-btn result-card__action-btn--platform"
-                                    onClick={() => window.open('https://real-debrid.com/torrents', '_blank')}
-                                    title="Ir para o Real-Debrid"
-                                >
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                                        <polyline points="15 3 21 3 21 9" />
-                                        <line x1="10" y1="14" x2="21" y2="3" />
-                                    </svg>
-                                    <span>Ver no RD</span>
-                                </button>
                             </>
                         )}
                     </>
                 )}
 
                 {type === 'cached' && apiKey && (
-                    <div style={{ display: 'flex', gap: '8px' }}>
+                    <div className="result-card__actions-group">
+                        <button
+                            className="result-card__action-btn result-card__action-btn--external"
+                            onClick={() => window.open('https://real-debrid.com/torrents', '_blank')}
+                            title="Abrir página de torrents do Real-Debrid"
+                        >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                                <polyline points="15 3 21 3 21 9" />
+                                <line x1="10" y1="14" x2="21" y2="3" />
+                            </svg>
+                            <span>Ver no RD</span>
+                        </button>
                         <button
                             className="result-card__action-btn result-card__action-btn--download-direct"
-                            onClick={() => {
-                                setAdding(true);
-                                handleSmartClick().finally(() => setAdding(false));
-                            }}
+                            onClick={() => handleSmartClick(false)}
                             disabled={adding}
                             title="Baixar de forma direta via Real-Debrid"
                         >
@@ -241,18 +252,6 @@ export default function ResultCard({ result, type, apiKey, onSmartRD, onManualCh
                                     <span>Download Direto</span>
                                 </>
                             )}
-                        </button>
-                        <button
-                            className="result-card__action-btn result-card__action-btn--external"
-                            onClick={() => window.open('https://real-debrid.com/torrents', '_blank')}
-                            title="Abrir página de torrents do Real-Debrid"
-                        >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                                <polyline points="15 3 21 3 21 9" />
-                                <line x1="10" y1="14" x2="21" y2="3" />
-                            </svg>
-                            <span>Ver no RD</span>
                         </button>
                     </div>
                 )}

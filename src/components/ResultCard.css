@@ -169,6 +169,42 @@
     background: rgba(52, 211, 153, 0.25);
 }
 
+.result-card__action-btn--download-direct {
+    background: var(--success-bg);
+    color: var(--success);
+    font-weight: 600;
+}
+
+.result-card__action-btn--download-direct:hover:not(:disabled) {
+    background: rgba(52, 211, 153, 0.25);
+}
+
+.result-card__action-btn--external {
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+}
+
+.result-card__action-btn--external:hover {
+    background: var(--accent-glow);
+    color: var(--accent-secondary);
+}
+
+.result-card__action-btn--platform {
+    background: var(--bg-elevated);
+    color: var(--text-secondary);
+}
+
+.result-card__action-btn--platform:hover {
+    background: var(--accent-glow);
+    color: var(--accent-secondary);
+}
+
+.result-card__actions-group {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
 .result-card__spinner {
     width: 14px;
     height: 14px;
