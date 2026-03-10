@@ -2,7 +2,9 @@ import ResultCard from './ResultCard';
 import './ResultsSection.css';
 
 export default function ResultsSection({ cachedResults, torrentResults, apiKey, onSmartRD, onManualCheck, onToast, sortBy, onSortChange }) {
-    const totalResults = cachedResults.length + torrentResults.length;
+    const directResults = torrentResults.filter(r => r.isBook);
+    const actualTorrentResults = torrentResults.filter(r => !r.isBook);
+    const totalResults = cachedResults.length + actualTorrentResults.length + directResults.length;
 
     if (totalResults === 0) return null;
 
@@ -56,21 +58,48 @@ export default function ResultsSection({ cachedResults, torrentResults, apiKey, 
                 </div>
             )}
 
-            {torrentResults.length > 0 && (
+            {directResults.length > 0 && (
                 <div className="results-group">
-                    <div className="results-group__header results-group__header--torrent">
-                        <div className="results-group__icon results-group__icon--torrent">
+                    <div className="results-group__header results-group__header--direct">
+                        <div className="results-group__icon results-group__icon--direct">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                                 <polyline points="7 10 12 15 17 10" />
                                 <line x1="12" y1="15" x2="12" y2="3" />
                             </svg>
                         </div>
-                        <h2>Torrents</h2>
-                        <span className="results-group__count">{torrentResults.length}</span>
+                        <h2>Download Direto</h2>
+                        <span className="results-group__count">{directResults.length}</span>
                     </div>
                     <div className="results-group__list">
-                        {torrentResults.map((result, i) => (
+                        {directResults.map((result, i) => (
+                            <ResultCard
+                                key={`direct-${result.id || i}`}
+                                result={result}
+                                type="torrent"
+                                apiKey={apiKey}
+                                onSmartRD={onSmartRD}
+                                onManualCheck={onManualCheck}
+                                onToast={onToast}
+                            />
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {actualTorrentResults.length > 0 && (
+                <div className="results-group">
+                    <div className="results-group__header results-group__header--torrent">
+                        <div className="results-group__icon results-group__icon--torrent">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                            </svg>
+                        </div>
+                        <h2>Torrents</h2>
+                        <span className="results-group__count">{actualTorrentResults.length}</span>
+                    </div>
+                    <div className="results-group__list">
+                        {actualTorrentResults.map((result, i) => (
                             <ResultCard
                                 key={`torrent-${result.hash || i}`}
                                 result={result}
