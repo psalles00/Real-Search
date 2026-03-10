@@ -1,0 +1,92 @@
+/* ========================================
+   App Layout
+   ======================================== */
+
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app__main {
+  flex: 1;
+  padding-top: var(--space-8);
+  padding-bottom: var(--space-16);
+}
+
+.app__hero {
+  text-align: center;
+  margin-bottom: var(--space-4);
+}
+
+.app__hero--centered {
+  text-align: center;
+  padding: var(--space-12) 0;
+  max-width: 600px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 50vh;
+}
+
+.app__welcome-title {
+  font-size: var(--font-3xl);
+  font-weight: 800;
+  margin-bottom: var(--space-4);
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.app__login-cta {
+  margin-top: var(--space-8);
+  padding: var(--space-6);
+  background: rgba(99, 102, 241, 0.05);
+  border: 1px border-subtle;
+  border-radius: var(--radius-lg);
+  color: var(--text-secondary);
+}
+
+.app__subtitle {
+  font-size: var(--font-base);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-8);
+  font-weight: 400;
+}
+
+.app__error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+  padding: var(--space-4) var(--space-6);
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-sm);
+  max-width: 680px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.app__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4);
+  margin-top: var(--space-12);
+  color: var(--text-tertiary);
+}
+
+.app__empty svg {
+  opacity: 0.3;
+}
+
+.app__empty p {
+  font-size: var(--font-sm);
+}
