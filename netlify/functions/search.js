@@ -211,6 +211,54 @@ async function search1337x(query) {
     return results;
 }
 
+// Z-Library Search via Library Genesis (Libgen)
+async function searchZLib(query) {
+    const results = [];
+    try {
+        // We use libgen.li as a proxy/alternative for Z-Library content
+        const searchUrl = `https://libgen.li/index.php?req=${encodeURIComponent(query)}&columns%5B%5D=t&columns%5B%5D=a&columns%5B%5D=s&columns%5B%5D=y&columns%5B%5D=p&columns%5B%5D=i&objects%5B%5D=f&objects%5B%5D=e&objects%5B%5D=s&objects%5B%5D=a&objects%5B%5D=p&objects%5B%5D=w&topics%5B%5D=l&topics%5B%5D=c&topics%5B%5D=f&topics%5B%5D=a&topics%5B%5D=m&topics%5B%5D=r&topics%5B%5D=s`;
+        const response = await fetch(searchUrl, {
+            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' }
+        });
+
+        if (!response.ok) return results;
+        const html = await response.text();
+        const $ = cheerio.load(html);
+
+        const rows = $('#tablelibgen tbody tr');
+        
+        rows.each((i, el) => {
+            const title = $(el).find('td:nth-child(1) a').first().text().trim();
+            const author = $(el).find('td:nth-child(2)').text().trim();
+            const year = $(el).find('td:nth-child(4)').text().trim();
+            const language = $(el).find('td:nth-child(5)').text().trim();
+            const format = $(el).find('td:nth-child(9)').text().trim();
+            const size = $(el).find('td:nth-child(10)').text().trim();
+            
+            // Mirror links are usually in columns 11+
+            const directLink = $(el).find('td:nth-child(11) a').attr('href');
+            
+            if (title && directLink) {
+                const fullTitle = author ? `${title} - ${author}` : title;
+                results.push({
+                    id: `zlib-${i}-${title}`.replace(/\s+/g, '-'),
+                    title: `${fullTitle} (${year})`,
+                    size,
+                    language,
+                    format,
+                    date: year,
+                    source: 'Z-Library (via Libgen)',
+                    directUrl: directLink.startsWith('http') ? directLink : `https://libgen.li/${directLink}`,
+                    isBook: true
+                });
+            }
+        });
+    } catch (err) {
+        console.warn('Z-Library search error:', err);
+    }
+    return results;
+}
+
 async function smartSearch(query, providers = []) {
     const seasonMatch = query.match(/(.+?)\s+(s(\d+)|season\s+(\d+)|temporada\s+(\d+))/i);
     let queries = [query];
@@ -242,16 +290,21 @@ async function smartSearch(query, providers = []) {
         if (!hasProvidersFilter || providers.includes('x1337')) searchPromises.push(search1337x(q));
         else searchPromises.push(Promise.resolve([]));
 
-        const [apibay, yts, tcsv, x1337] = await Promise.all(searchPromises);
-        return [...apibay, ...yts, ...tcsv, ...x1337];
+        if (!hasProvidersFilter || providers.includes('zlib')) searchPromises.push(searchZLib(q));
+        else searchPromises.push(Promise.resolve([]));
+
+        const [apibay, yts, tcsv, x1337, zlib] = await Promise.all(searchPromises);
+        return [...apibay, ...yts, ...tcsv, ...x1337, ...zlib];
     }));
 
     const seen = new Set();
     let mergedResults = [];
 
     allResultsRaw.flat().forEach(r => {
-        if (!seen.has(r.hash)) {
-            seen.add(r.hash);
+        // Books don't have a hash, use id instead
+        const uniqueId = r.hash || r.id;
+        if (!seen.has(uniqueId)) {
+            seen.add(uniqueId);
             if (filterPattern) {
                 if (filterPattern.test(r.title)) {
                     mergedResults.push(r);
@@ -281,8 +334,8 @@ export default async (request) => {
     try {
         const results = await smartSearch(q, providers);
 
-        // Sort by seeders descending
-        results.sort((a, b) => b.seeds - a.seeds);
+        // Sort by seeders descending (books go to bottom if seeds are 0/undefined)
+        results.sort((a, b) => (b.seeds || 0) - (a.seeds || 0));
 
         const limitedResults = results.slice(0, MAX_RESULTS);
 

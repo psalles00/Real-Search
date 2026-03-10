@@ -118,6 +118,52 @@ export default function Settings({
                         />
                     </div>
 
+                    <div className="settings-field">
+                        <label className="settings-field__label">Provedores de Busca</label>
+                        <div className="settings-providers">
+                            <label className="settings-provider-toggle">
+                                <input
+                                    type="checkbox"
+                                    checked={providers.apibay}
+                                    onChange={() => toggleProvider('apibay')}
+                                />
+                                <span>The Pirate Bay</span>
+                            </label>
+                            <label className="settings-provider-toggle">
+                                <input
+                                    type="checkbox"
+                                    checked={providers.yts}
+                                    onChange={() => toggleProvider('yts')}
+                                />
+                                <span>YTS</span>
+                            </label>
+                            <label className="settings-provider-toggle">
+                                <input
+                                    type="checkbox"
+                                    checked={providers.tcsv}
+                                    onChange={() => toggleProvider('tcsv')}
+                                />
+                                <span>TorrentsCSV</span>
+                            </label>
+                            <label className="settings-provider-toggle">
+                                <input
+                                    type="checkbox"
+                                    checked={providers.x1337}
+                                    onChange={() => toggleProvider('x1337')}
+                                />
+                                <span>1337x</span>
+                            </label>
+                            <label className="settings-provider-toggle">
+                                <input
+                                    type="checkbox"
+                                    checked={providers.zlib}
+                                    onChange={() => toggleProvider('zlib')}
+                                />
+                                <span>Z-Library</span>
+                            </label>
+                        </div>
+                    </div>
+
                     {testResult && (
                         <div
                             className={`settings-result ${testResult.success ? 'settings-result--success' : 'settings-result--error'}`}

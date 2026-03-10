@@ -26,6 +26,8 @@ export default function ResultCard({ result, type, apiKey, onSmartRD, onManualCh
     const handleOpenMagnet = () => {
         if (result.magnet) {
             window.open(result.magnet, '_self');
+        } else if (result.directUrl) {
+            window.open(result.directUrl, '_blank');
         }
     };
 
@@ -86,12 +88,22 @@ export default function ResultCard({ result, type, apiKey, onSmartRD, onManualCh
                             {formatSize(result.size)}
                         </span>
                     )}
-                    {result.seeds !== undefined && (
+                    {result.format && (
+                        <span className="result-card__badge result-card__badge--format">
+                            {result.format.toUpperCase()}
+                        </span>
+                    )}
+                    {result.language && (
+                        <span className="result-card__badge result-card__badge--lang">
+                            {result.language}
+                        </span>
+                    )}
+                    {result.seeds !== undefined && !result.isBook && (
                         <span className="result-card__badge result-card__badge--seeds">
                             ▲ {result.seeds}
                         </span>
                     )}
-                    {result.peers !== undefined && (
+                    {result.peers !== undefined && !result.isBook && (
                         <span className="result-card__badge result-card__badge--peers">
                             ▼ {result.peers}
                         </span>
@@ -126,31 +138,45 @@ export default function ResultCard({ result, type, apiKey, onSmartRD, onManualCh
             </div>
 
             <div className="result-card__actions">
-                {type === 'torrent' && (
+                {(type === 'torrent' || result.isBook) && (
                     <>
                         <button
-                            className="result-card__action-btn result-card__action-btn--magnet"
+                            className={`result-card__action-btn result-card__action-btn--${result.isBook ? 'download' : 'magnet'}`}
                             onClick={handleOpenMagnet}
-                            title="Abrir Magnet Link"
+                            title={result.isBook ? 'Abrir Link de Download' : 'Abrir Magnet Link'}
                         >
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M4 14a6 6 0 0 1 6-6h4a6 6 0 0 1 0 12h-1" />
-                                <path d="M20 10a6 6 0 0 1-6 6H10a6 6 0 0 1 0-12h1" />
+                                {result.isBook ? (
+                                    <>
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                        <polyline points="7 10 12 15 17 10" />
+                                        <line x1="12" y1="15" x2="12" y2="3" />
+                                    </>
+                                ) : (
+                                    <>
+                                        <path d="M4 14a6 6 0 0 1 6-6h4a6 6 0 0 1 0 12h-1" />
+                                        <path d="M20 10a6 6 0 0 1-6 6H10a6 6 0 0 1 0-12h1" />
+                                    </>
+                                )}
                             </svg>
-                            <span>Magnet</span>
+                            <span>{result.isBook ? 'Baixar' : 'Magnet'}</span>
                         </button>
-                        <button
-                            className="result-card__action-btn result-card__action-btn--copy"
-                            onClick={handleCopyMagnet}
-                            title="Copiar Magnet"
-                        >
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                            </svg>
-                            <span>Copiar</span>
-                        </button>
-                        {apiKey && (
+
+                        {!result.isBook && (
+                            <button
+                                className="result-card__action-btn result-card__action-btn--copy"
+                                onClick={handleCopyMagnet}
+                                title="Copiar Magnet"
+                            >
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                                </svg>
+                                <span>Copiar</span>
+                            </button>
+                        )}
+
+                        {type === 'torrent' && !result.isBook && apiKey && (
                             <>
                                 <button
                                     className={`result-card__action-btn result-card__action-btn--check ${checkedNoCache ? 'result-card__action-btn--no-cache' : ''}`}

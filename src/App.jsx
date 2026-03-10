@@ -21,7 +21,8 @@ export default function App() {
     apibay: true,
     yts: true,
     tcsv: true,
-    x1337: true
+    x1337: true,
+    zlib: true
   });
   const [providers, setProviders] = useState(localProviders);
 
