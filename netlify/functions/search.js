@@ -211,6 +211,61 @@ async function search1337x(query) {
     return results;
 }
 
+// Z-Library Search
+async function searchZLib(query) {
+    const results = [];
+    try {
+        const searchUrl = `https://z-lib.fm/s/${encodeURIComponent(query)}`;
+        const response = await fetch(searchUrl, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+                'Accept-Language': 'en-US,en;q=0.5'
+            }
+        });
+
+        if (!response.ok) {
+            console.warn(`Z-Library returned status ${response.status}`);
+            return results;
+        }
+
+        const html = await response.text();
+        const $ = cheerio.load(html);
+
+        $('z-bookcard').each((i, el) => {
+            const card = $(el);
+            const title = card.find('div[slot="title"]').text().trim();
+            const author = card.find('div[slot="author"]').text().trim();
+            const id = card.attr('id');
+            const bookHref = card.attr('href');
+            const downloadPath = card.attr('download');
+            const language = card.attr('language');
+            const year = card.attr('year');
+            const extension = card.attr('extension');
+            const filesize = card.attr('filesize');
+
+            if (title && downloadPath) {
+                const fullTitle = author ? `${title} - ${author}` : title;
+                results.push({
+                    id: `zlib-${id}`,
+                    title: year && year !== '0' ? `${fullTitle} (${year})` : fullTitle,
+                    size: filesize || 'Desconhecido',
+                    language: language || '',
+                    format: extension || '',
+                    date: year && year !== '0' ? year : '',
+                    source: 'Z-Library',
+                    bookUrl: bookHref ? `https://z-lib.fm${bookHref}` : null,
+                    directUrl: `https://z-lib.fm${downloadPath}`,
+                    isBook: true
+                });
+            }
+        });
+    } catch (err) {
+        console.warn('Z-Library search error:', err);
+    }
+    return results;
+}
+
 // LibGen Search via Library Genesis (Libgen)
 async function searchLibGen(query) {
     const results = [];
@@ -304,8 +359,11 @@ async function smartSearch(query, providers = []) {
         if (!hasProvidersFilter || providers.includes('libgen')) searchPromises.push(searchLibGen(q));
         else searchPromises.push(Promise.resolve([]));
 
-        const [apibay, yts, tcsv, x1337, libgen] = await Promise.all(searchPromises);
-        return [...apibay, ...yts, ...tcsv, ...x1337, ...libgen];
+        if (!hasProvidersFilter || providers.includes('zlib')) searchPromises.push(searchZLib(q));
+        else searchPromises.push(Promise.resolve([]));
+
+        const [apibay, yts, tcsv, x1337, libgen, zlib] = await Promise.all(searchPromises);
+        return [...apibay, ...yts, ...tcsv, ...x1337, ...libgen, ...zlib];
     }));
 
     const seen = new Set();

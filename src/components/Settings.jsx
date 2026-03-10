@@ -161,6 +161,14 @@ export default function Settings({
                                 />
                                 <span>LibGen</span>
                             </label>
+                            <label className="settings-provider-toggle">
+                                <input
+                                    type="checkbox"
+                                    checked={providers.zlib}
+                                    onChange={() => toggleProvider('zlib')}
+                                />
+                                <span>Z-Library</span>
+                            </label>
                         </div>
                     </div>
 
@@ -236,6 +244,20 @@ export default function Settings({
                             >
                                 <span className={`provider-dot ${providers?.x1337 ? 'active' : ''}`}></span>
                                 1337x.to (Scraper)
+                            </li>
+                            <li 
+                                className={`provider-item ${providers?.libgen ? 'active' : 'inactive'}`}
+                                onClick={() => toggleProvider('libgen')}
+                            >
+                                <span className={`provider-dot ${providers?.libgen ? 'active' : ''}`}></span>
+                                LibGen (Scraper)
+                            </li>
+                            <li 
+                                className={`provider-item ${providers?.zlib ? 'active' : 'inactive'}`}
+                                onClick={() => toggleProvider('zlib')}
+                            >
+                                <span className={`provider-dot ${providers?.zlib ? 'active' : ''}`}></span>
+                                Z-Library (Scraper)
                             </li>
                         </ul>
                     </div>
